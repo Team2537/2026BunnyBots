@@ -109,10 +109,4 @@ public class ArmSim extends Arm {
     rightGrabberTalonFXSim.setRotorVelocity(
         rightGrabberSim.getAngularVelocity().times(GRABBER_GEAR_RATIO));
   }
-
-  private ChassisReference getSimChassisReference(TalonFXConfiguration config) {
-    return config.MotorOutput.Inverted == InvertedValue.CounterClockwise_Positive
-        ? ChassisReference.CounterClockwise_Positive
-        : ChassisReference.Clockwise_Positive;
-  }
 }
