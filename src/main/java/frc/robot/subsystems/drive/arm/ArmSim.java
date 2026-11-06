@@ -4,8 +4,6 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -58,11 +56,11 @@ public class ArmSim extends Arm {
     rightPivotTalonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
 
     var leftGrabberTalonFXSim = leftGrabberMotor.getSimState();
-    leftGrabberTalonFXSim.Orientation = getSimChassisReference(ArmConstants.LEFT_GRABBER_CONFIG);
+    leftGrabberTalonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
     leftGrabberTalonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX44);
 
     var rightGrabberTalonFXSim = rightGrabberMotor.getSimState();
-    rightGrabberTalonFXSim.Orientation = getSimChassisReference(ArmConstants.RIGHT_GRABBER_CONFIG);
+    rightGrabberTalonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
     rightGrabberTalonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX44);
   }
 
@@ -92,7 +90,6 @@ public class ArmSim extends Arm {
         Radians.of(pivotSim.getAngleRads()).times(PIVOT_GEAR_RATIO));
     leftPivotTalonFXSim.setRotorVelocity(
         RadiansPerSecond.of(pivotSim.getVelocityRadPerSec()).times(PIVOT_GEAR_RATIO));
-    System.out.println(Radians.of(pivotSim.getAngleRads()).in(Degrees));
 
     rightPivotTalonFXSim.setRawRotorPosition(
         Radians.of(pivotSim.getAngleRads()).times(PIVOT_GEAR_RATIO));
