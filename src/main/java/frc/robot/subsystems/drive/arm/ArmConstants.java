@@ -9,6 +9,7 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
@@ -32,11 +33,13 @@ public final class ArmConstants {
   public static final double STATUS_UPDATE_HZ = 50.0;
 
   public static final double PIVOT_GEAR_RATIO = 1.0;
-  public static final double PIVOT_MOMENT_OF_INERTIA = 0.025; // kg*m^2
+  public static final double PIVOT_MOMENT_OF_INERTIA =
+      0.025; // kg*m^2 (can also use SingleJointedArmSim.estimateMOI(m, kg))
 
   public static final double PIVOT_KP = 10.0;
   public static final double PIVOT_KI = 0.0;
   public static final double PIVOT_KD = 0.0;
+  public static final double PIVOT_KG = 0.0;
 
   public static final double PIVOT_CRUISE_VELOCITY = 10.0;
   public static final double PIVOT_ACCELERATION = 1.0;
@@ -64,14 +67,17 @@ public final class ArmConstants {
           .withMotorOutput(
               new MotorOutputConfigs()
                   .withNeutralMode(NeutralModeValue.Brake)
-                  .withInverted(InvertedValue.Clockwise_Positive)) // TODO: confirm if inverted
+                  .withInverted(
+                      InvertedValue.CounterClockwise_Positive)) // TODO: confirm if inverted
           .withFeedback(
               new FeedbackConfigs().withSensorToMechanismRatio(ArmConstants.PIVOT_GEAR_RATIO))
           .withSlot0(
               new Slot0Configs()
                   .withKP(ArmConstants.PIVOT_KP)
                   .withKI(ArmConstants.PIVOT_KI)
-                  .withKD(ArmConstants.PIVOT_KD))
+                  .withKD(ArmConstants.PIVOT_KD)
+                  .withKG(ArmConstants.PIVOT_KG)
+                  .withGravityType(GravityTypeValue.Arm_Cosine))
           .withMotionMagic(
               new MotionMagicConfigs()
                   .withMotionMagicCruiseVelocity(ArmConstants.PIVOT_CRUISE_VELOCITY)
@@ -88,7 +94,8 @@ public final class ArmConstants {
           .withMotorOutput(
               new MotorOutputConfigs()
                   .withNeutralMode(NeutralModeValue.Brake)
-                  .withInverted(InvertedValue.Clockwise_Positive)) // TODO: confirm if inverted
+                  .withInverted(
+                      InvertedValue.CounterClockwise_Positive)) // TODO: confirm if inverted
           .withFeedback(
               new FeedbackConfigs().withSensorToMechanismRatio(ArmConstants.PIVOT_GEAR_RATIO))
           .withSlot0(

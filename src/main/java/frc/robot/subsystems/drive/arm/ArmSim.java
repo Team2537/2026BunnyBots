@@ -1,5 +1,9 @@
 package frc.robot.subsystems.drive.arm;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -8,6 +12,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 /** Simulation implementation of arm IO. */
 public class ArmSim extends Arm {
@@ -17,20 +22,21 @@ public class ArmSim extends Arm {
   private static final double PIVOT_GEAR_RATIO = ArmConstants.PIVOT_GEAR_RATIO;
   private static final double GRABBER_GEAR_RATIO = 1.0;
 
-  private static final DCMotor LEFT_PIVOT_GEARBOX = DCMotor.getKrakenX60Foc(1);
-  private static final DCMotor RIGHT_PIVOT_GEARBOX = DCMotor.getKrakenX60Foc(1);
+  private static final DCMotor PIVOT_GEARBOX = DCMotor.getKrakenX60Foc(2);
   private static final DCMotor LEFT_GRABBER_GEARBOX = DCMotor.getKrakenX44Foc(1);
   private static final DCMotor RIGHT_GRABBER_GEARBOX = DCMotor.getKrakenX44Foc(1);
 
-  private final DCMotorSim leftPivotSim =
-      new DCMotorSim(
-          LinearSystemId.createDCMotorSystem(LEFT_PIVOT_GEARBOX, 0.025, PIVOT_GEAR_RATIO),
-          LEFT_PIVOT_GEARBOX);
-
-  private final DCMotorSim rightPivotSim =
-      new DCMotorSim(
-          LinearSystemId.createDCMotorSystem(RIGHT_PIVOT_GEARBOX, 0.025, PIVOT_GEAR_RATIO),
-          RIGHT_PIVOT_GEARBOX);
+  // If the pivot motors move together, we can sim them as part of the same model, which supports gravity
+  private final SingleJointedArmSim pivotSim =
+      new SingleJointedArmSim(
+          PIVOT_GEARBOX,
+          PIVOT_GEAR_RATIO,
+          ArmConstants.PIVOT_MOMENT_OF_INERTIA,
+          1.0, // should be in ArmConstants
+          Degrees.of(-50).in(Radians), // should be in ArmConstants
+          Degrees.of(50).in(Radians), // should be in ArmConstants
+          true, // enable gravity,
+          Degrees.of(0).in(Radians));
 
   private final DCMotorSim leftGrabberSim =
       new DCMotorSim(
@@ -44,11 +50,11 @@ public class ArmSim extends Arm {
 
   public void simulationInit() {
     var leftPivotTalonFXSim = leftPivotMotor.getSimState();
-    leftPivotTalonFXSim.Orientation = getSimChassisReference(ArmConstants.LEFT_PIVOT_CONFIG);
+    leftPivotTalonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
     leftPivotTalonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
 
     var rightPivotTalonFXSim = rightPivotMotor.getSimState();
-    rightPivotTalonFXSim.Orientation = getSimChassisReference(ArmConstants.RIGHT_PIVOT_CONFIG);
+    rightPivotTalonFXSim.Orientation = ChassisReference.CounterClockwise_Positive;
     rightPivotTalonFXSim.setMotorType(TalonFXSimState.MotorType.KrakenX60);
 
     var leftGrabberTalonFXSim = leftGrabberMotor.getSimState();
@@ -73,25 +79,25 @@ public class ArmSim extends Arm {
     leftGrabberTalonFXSim.setSupplyVoltage(batteryVoltage);
     rightGrabberTalonFXSim.setSupplyVoltage(batteryVoltage);
 
-    leftPivotSim.setInputVoltage(leftPivotTalonFXSim.getMotorVoltage());
-    rightPivotSim.setInputVoltage(rightPivotTalonFXSim.getMotorVoltage());
+    pivotSim.setInputVoltage(leftPivotTalonFXSim.getMotorVoltage());
     leftGrabberSim.setInputVoltage(leftGrabberTalonFXSim.getMotorVoltage());
     rightGrabberSim.setInputVoltage(rightGrabberTalonFXSim.getMotorVoltage());
 
     // Advance simulations
-    leftPivotSim.update(LOOP_PERIOD_SEC);
-    rightPivotSim.update(LOOP_PERIOD_SEC);
+    pivotSim.update(LOOP_PERIOD_SEC);
     leftGrabberSim.update(LOOP_PERIOD_SEC);
     rightGrabberSim.update(LOOP_PERIOD_SEC);
 
     leftPivotTalonFXSim.setRawRotorPosition(
-        leftPivotSim.getAngularPosition().times(PIVOT_GEAR_RATIO));
-    leftPivotTalonFXSim.setRotorVelocity(leftPivotSim.getAngularVelocity().times(PIVOT_GEAR_RATIO));
+        Radians.of(pivotSim.getAngleRads()).times(PIVOT_GEAR_RATIO));
+    leftPivotTalonFXSim.setRotorVelocity(
+        RadiansPerSecond.of(pivotSim.getVelocityRadPerSec()).times(PIVOT_GEAR_RATIO));
+    System.out.println(Radians.of(pivotSim.getAngleRads()).in(Degrees));
 
     rightPivotTalonFXSim.setRawRotorPosition(
-        rightPivotSim.getAngularPosition().times(PIVOT_GEAR_RATIO));
+        Radians.of(pivotSim.getAngleRads()).times(PIVOT_GEAR_RATIO));
     rightPivotTalonFXSim.setRotorVelocity(
-        rightPivotSim.getAngularVelocity().times(PIVOT_GEAR_RATIO));
+        RadiansPerSecond.of(pivotSim.getVelocityRadPerSec()).times(PIVOT_GEAR_RATIO));
 
     leftGrabberTalonFXSim.setRawRotorPosition(
         leftGrabberSim.getAngularPosition().times(GRABBER_GEAR_RATIO));
@@ -107,6 +113,6 @@ public class ArmSim extends Arm {
   private ChassisReference getSimChassisReference(TalonFXConfiguration config) {
     return config.MotorOutput.Inverted == InvertedValue.CounterClockwise_Positive
         ? ChassisReference.CounterClockwise_Positive
-        : ChassisReference.CounterClockwise_Positive;
+        : ChassisReference.Clockwise_Positive;
   }
 }
