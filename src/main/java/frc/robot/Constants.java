@@ -15,6 +15,9 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
+  public static final String DRIVETRAIN_CAN_BUS = "canivore";
+  public static final String MECHANISM_CAN_BUS = "rio";
+
   public static final Mode simMode = Mode.SIM;
   public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
