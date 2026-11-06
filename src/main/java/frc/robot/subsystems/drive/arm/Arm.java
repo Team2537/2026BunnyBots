@@ -1,146 +1,153 @@
 package frc.robot.subsystems.drive.arm;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Rotations;
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.function.DoubleSupplier;
+import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
 
 public class Arm extends SubsystemBase {
 
-  private static final double PIVOT_TOLERANCE_ROTATIONS = 0.02;
+  private static final Angle PIVOT_TOLERANCE = Degrees.of(0.5);
 
-  private final ArmIO io;
-  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+  protected final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
-  public Arm(ArmIO io) {
-    this.io = io;
+  private static final CANBus MECHANISM_CAN_BUS = new CANBus(Constants.MECHANISM_CAN_BUS);
+
+  protected final TalonFX leftPivotMotor =
+      new TalonFX(ArmConstants.LEFT_PIVOT_MOTOR_ID, MECHANISM_CAN_BUS);
+  protected final TalonFX rightPivotMotor =
+      new TalonFX(ArmConstants.RIGHT_PIVOT_MOTOR_ID, MECHANISM_CAN_BUS);
+  protected final TalonFX leftGrabberMotor =
+      new TalonFX(ArmConstants.LEFT_GRABBER_MOTOR_ID, MECHANISM_CAN_BUS);
+  protected final TalonFX rightGrabberMotor =
+      new TalonFX(ArmConstants.RIGHT_GRABBER_MOTOR_ID, MECHANISM_CAN_BUS);
+
+  private final ArmSignalManager armSignalManager =
+      new ArmSignalManager(leftPivotMotor, rightPivotMotor, leftGrabberMotor, rightGrabberMotor);
+
+  private final MotionMagicVoltage leftPivotPositionRequest = new MotionMagicVoltage(0.0);
+  private final MotionMagicVoltage rightPivotPositionRequest = new MotionMagicVoltage(0.0);
+
+  private final DutyCycleOut leftPivotDutyCycleRequest = new DutyCycleOut(0.0);
+  private final DutyCycleOut rightPivotDutyCycleRequest = new DutyCycleOut(0.0);
+
+  private final VoltageOut leftGrabberVoltageRequest = new VoltageOut(0.0);
+  private final VoltageOut rightGrabberVoltageRequest = new VoltageOut(0.0);
+
+  public Arm() {
+    configureMotor(leftPivotMotor, ArmConstants.LEFT_PIVOT_CONFIG);
+    configureMotor(rightPivotMotor, ArmConstants.RIGHT_PIVOT_CONFIG);
+    configureMotor(leftGrabberMotor, ArmConstants.LEFT_GRABBER_CONFIG);
+    configureMotor(rightGrabberMotor, ArmConstants.RIGHT_GRABBER_CONFIG);
+
+    leftPivotMotor.setPosition(Rotations.of(0.0));
+    rightPivotMotor.setPosition(Rotations.of(0.0));
+  }
+
+  private void configureMotor(TalonFX motor, TalonFXConfiguration config) {
+    tryUntilOk(5, () -> motor.getConfigurator().apply(config, 0.25));
   }
 
   @Override
   public void periodic() {
-    io.updateInputs(inputs);
+    armSignalManager.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
   }
 
   // Pivot Actions
 
   public void setPosition(Angle position) {
-    io.setPosition(position);
+    double targetRotations = position.in(Rotations);
+
+    leftPivotMotor.setControl(leftPivotPositionRequest.withSlot(0).withPosition(targetRotations));
+
+    // TODO: I don't think this is right. You should be able to make the angles matching using the
+    // TalonFxConfiguration
+    // rightPivotMotor.setControl(
+    //     rightPivotPositionRequest
+    //         .withSlot(0)
+    //         .withPosition(
+    //             ArmConstants.RIGHT_PIVOT_MOTOR_INVERTED ? -targetRotations : targetRotations));
+
+    rightPivotMotor.setControl(rightPivotPositionRequest.withSlot(0).withPosition(targetRotations));
   }
 
   public void setSpeed(double speed) {
-    // Clamp the speed between -1.0 and 1.0 and set it to the pivot motors
-    
+    var clampedSpeed = MathUtil.clamp(speed, -1.0, 1.0);
+    leftPivotMotor.setControl(leftPivotDutyCycleRequest.withOutput(clampedSpeed));
+    rightPivotMotor.setControl(rightPivotDutyCycleRequest.withOutput(clampedSpeed));
   }
 
   public void stopPivot() {
-    // stop the pivot motors
-    
+    leftPivotMotor.stopMotor();
+    rightPivotMotor.stopMotor();
   }
 
-  public double getLeftPivotPosition() {
+  public Angle getLeftPivotPosition() {
     return inputs.leftPivotPosition;
   }
 
-  public double getRightPivotPosition() {
+  public Angle getRightPivotPosition() {
     return inputs.rightPivotPosition;
   }
 
-  public double getPivotPosition() {
-    return (inputs.leftPivotPosition + inputs.rightPivotPosition) / 2.0;
+  public Angle getPivotPosition() {
+    // TODO: might be better to just trust one side
+    return getLeftPivotPosition().plus(getRightPivotPosition()).div(2.0);
   }
 
   public boolean isAtPosition(Angle position) {
-    double target = position.in(edu.wpi.first.units.Units.Rotations);
+    return getPivotPosition().isNear(position, PIVOT_TOLERANCE);
+  }
 
-    boolean leftAtPosition =
-        Math.abs(inputs.leftPivotPosition - target) <= PIVOT_TOLERANCE_ROTATIONS;
-
-    boolean rightAtPosition =
-        Math.abs(inputs.rightPivotPosition - target) <= PIVOT_TOLERANCE_ROTATIONS;
-
-    return leftAtPosition && rightAtPosition;
+  public Voltage getGrabberAppliedVolts() {
+    return inputs.leftGrabberAppliedVolts;
   }
 
   // Grabber Actions
 
   public void grabGamePiece() {
-    io.grabGamePiece();
+    leftGrabberMotor.setControl(
+        leftGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_INTAKE_VOLTS));
+    rightGrabberMotor.setControl(
+        rightGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_INTAKE_VOLTS));
   }
 
   public void releaseGamePiece() {
-    io.releaseGamePiece();
+    leftGrabberMotor.setControl(
+        leftGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_RELEASE_VOLTS));
+    rightGrabberMotor.setControl(
+        rightGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_RELEASE_VOLTS));
   }
 
   public void holdGamePiece() {
-    io.holdGamePiece();
+    leftGrabberMotor.setControl(
+        leftGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_HOLD_VOLTS));
+    rightGrabberMotor.setControl(
+        rightGrabberVoltageRequest.withOutput(ArmConstants.GRABBER_HOLD_VOLTS));
   }
 
   public void stopGrabber() {
-    io.stopGrabber();
+    leftGrabberMotor.stopMotor();
+    rightGrabberMotor.stopMotor();
   }
 
   // General Actions
 
   public void stop() {
-    io.stopArm();
-  }
-
-  // Factory Commands 
-  // Moves the pivot to a position and holds it there
-  public void setPositionCommand(Angle position) {
-    // returns a command that sets the arm position to the given position and waits until it reaches that position
-    
-  }
-
-  // Moves the arm to the L1 scoring position
-  public void scoreL1Command() {
-    // returns a command that sets the arm position to L1_ANGLE, set name to "ArmScoreL1"
-    
-  }
-
-  // Moves the arm to the L2 scoring position
-  public void scoreL2Command() {
-    // returns a command that sets the arm position to L2_ANGLE
-    
-  }
-
-  // Moves the arm to the L3 scoring position
-  public void scoreL3Command() {
-    // returns a command that sets the arm position to L3_ANGLE
-    
-  }
-
-  // Moves the arm to the oven scoring position
-  public void scoreOvenCommand() {
-  }
-
-  // Manual pivot control using a joystick
-  public Command manualPivotCommand(DoubleSupplier joystickInput) {
-    return runEnd(() -> setSpeed(joystickInput.getAsDouble()), this::stopPivot)
-        .withName("ArmManualPivot");
-  }
-
-  // Runs the grabber while the command is active.
-  public void grabGamePieceCommand() {
-    // return a command that runs the grabber while the command is active and stops the grabber when the command ends, set name to "ArmGrabGamePiece"
-  }
-
-  // Releases the game piece while the command is active.
-  public void releaseGamePieceCommand() {
-    // return a command that releases the game piece while the command is active and stops the grabber when the command ends, set name to "ArmReleaseGamePiece"
-  }
-
-  // Applies the grabber holding voltage.
-  public void holdGamePieceCommand() {
-    // return a command that applies the grabber holding voltage while the command is active, set name to "ArmHoldGamePiece"
-  }
-
-  // Stops the entire arm.
-  public void stopCommand() {
-    // return a command that stops the entire arm, set name to "ArmStop"
+    stopPivot();
+    stopGrabber();
   }
 }
