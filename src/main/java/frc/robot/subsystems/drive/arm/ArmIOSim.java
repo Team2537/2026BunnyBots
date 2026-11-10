@@ -1,6 +1,5 @@
 package frc.robot.subsystems.drive.arm;
 
-import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Rotations;
 
 import edu.wpi.first.math.MathUtil;
@@ -215,8 +214,8 @@ public class ArmIOSim implements ArmIO {
 	// set the left and right pivot requested volts to the volts variable
 	// set the pivot position closed loop boolean to false and the pivot open loop boolean to true
   double volts = MathUtil.clamp(speed, -1, 1) * MAX_VOLTS;
-leftPivotRequestedVolts = volts;
-rightPivotRequestedVolts = volts;
+  leftPivotRequestedVolts = volts;
+  rightPivotRequestedVolts = volts;
   pivotPositionClosedLoop = false;
   pivotPositionOpenLoop = true;
   }
@@ -289,12 +288,12 @@ rightPivotRequestedVolts = volts;
 
   private double getLeftPivotPositionRotations() {
 	// Convert the left pivot's angular position from radians to rotations and apply inversion if necessary
-	return 1.0; // Placeholder value, replace with actual calculation
+	return leftPivotSim.getAngularPositionRotations(); // Placeholder value, replace with actual calculation
   
   }
 
   private double getRightPivotPositionRotations() {
 	// Convert the right pivot's angular position from radians to rotations and apply inversion if necessary
-	return 1.0; // Placeholder value, replace with actual calculation
+	return rightPivotSim.getAngularPositionRotations(); // Placeholder value, replace with actual calculation
   }
 }
