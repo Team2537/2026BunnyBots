@@ -193,31 +193,39 @@ public class ArmIOSim implements ArmIO {
 
   @Override
   public void setPosition(Angle position) {
-	// set the target pivot position (rotations) to the position in rotations
-	// set the left and right profiled setpoints to new trapezoid profile states with the left and right pivot positions in rotations and the left and right pivot angular velocities in rotations per second multiplied by their respective inversion constants
-	// reset the left and right pivot controllers to clear any accumulated error
-	// set the pivot position closed loop boolean to true and the pivot open loop boolean to false
+    // set the target pivot position (rotations) to the position in rotations
+    // set the left and right profiled setpoints to new trapezoid profile states with the left and
+    // right pivot positions in rotations and the left and right pivot angular velocities in
+    // rotations per second multiplied by their respective inversion constants
+    // reset the left and right pivot controllers to clear any accumulated error
+    // set the pivot position closed loop boolean to true and the pivot open loop boolean to false
 
-  targetPivotPositionRot = position.in(Rotations);
-  leftProfiledSetpoint = new TrapezoidProfile.State(leftPivotSim.getAngularPositionRotations(), leftPivotSim.getAngularVelocityRPM() * LEFT_PIVOT_INVERSION);
-  rightProfiledSetpoint = new TrapezoidProfile.State(rightPivotSim.getAngularPositionRotations(), rightPivotSim.getAngularVelocityRPM() * RIGHT_PIVOT_INVERSION);
-  leftPivotController.reset();
-  rightPivotController.reset();
-  pivotPositionClosedLoop = true;
-  pivotPositionOpenLoop = false;
-
+    targetPivotPositionRot = position.in(Rotations);
+    leftProfiledSetpoint =
+        new TrapezoidProfile.State(
+            leftPivotSim.getAngularPositionRotations(),
+            leftPivotSim.getAngularVelocityRPM() * LEFT_PIVOT_INVERSION);
+    rightProfiledSetpoint =
+        new TrapezoidProfile.State(
+            rightPivotSim.getAngularPositionRotations(),
+            rightPivotSim.getAngularVelocityRPM() * RIGHT_PIVOT_INVERSION);
+    leftPivotController.reset();
+    rightPivotController.reset();
+    pivotPositionClosedLoop = true;
+    pivotPositionOpenLoop = false;
   }
 
   @Override
   public void setSpeed(double speed) {
-	// create a double volts and set it to the speed clamped between -1.0 and 1.0 multiplied by the max volts constant
-	// set the left and right pivot requested volts to the volts variable
-	// set the pivot position closed loop boolean to false and the pivot open loop boolean to true
-  double volts = MathUtil.clamp(speed, -1, 1) * MAX_VOLTS;
-  leftPivotRequestedVolts = volts;
-  rightPivotRequestedVolts = volts;
-  pivotPositionClosedLoop = false;
-  pivotPositionOpenLoop = true;
+    // create a double volts and set it to the speed clamped between -1.0 and 1.0 multiplied by the
+    // max volts constant
+    // set the left and right pivot requested volts to the volts variable
+    // set the pivot position closed loop boolean to false and the pivot open loop boolean to true
+    double volts = MathUtil.clamp(speed, -1, 1) * MAX_VOLTS;
+    leftPivotRequestedVolts = volts;
+    rightPivotRequestedVolts = volts;
+    pivotPositionClosedLoop = false;
+    pivotPositionOpenLoop = true;
   }
 
   @Override
@@ -228,72 +236,67 @@ public class ArmIOSim implements ArmIO {
 
   @Override
   public void releaseGamePiece() {
-	// set the grabber motors to release voltage
-  leftGrabberRequestedVolts = ArmConstants.GRABBER_RELEASE_VOLTS;
-  rightGrabberRequestedVolts = ArmConstants.GRABBER_RELEASE_VOLTS;
-
-
+    // set the grabber motors to release voltage
+    leftGrabberRequestedVolts = ArmConstants.GRABBER_RELEASE_VOLTS;
+    rightGrabberRequestedVolts = ArmConstants.GRABBER_RELEASE_VOLTS;
   }
 
   @Override
   public void holdGamePiece() {
-	// set the grabber motors to hold voltage
+    // set the grabber motors to hold voltage
     leftGrabberRequestedVolts = ArmConstants.GRABBER_HOLD_VOLTS;
     rightGrabberRequestedVolts = ArmConstants.GRABBER_HOLD_VOLTS;
-
-
   }
 
   @Override
   public void stopPivot() {
-	// set closed-loop and open-loop booleans to false (pivotpositionclosedloop, pivotopenloop)
-	// Stop the pivot motors by setting their requested and applied voltages to zero
-	// reset the pivot controllers to clear any accumulated error
-   pivotPositionClosedLoop = false;
-   pivotPositionOpenLoop = false;
-   leftPivotRequestedVolts = 0;
-   rightPivotRequestedVolts = 0;
-   leftPivotAppliedVolts = 0;
-   rightPivotAppliedVolts = 0;
-   leftPivotController.reset();
-   rightPivotController.reset();
-
-
-
+    // set closed-loop and open-loop booleans to false (pivotpositionclosedloop, pivotopenloop)
+    // Stop the pivot motors by setting their requested and applied voltages to zero
+    // reset the pivot controllers to clear any accumulated error
+    pivotPositionClosedLoop = false;
+    pivotPositionOpenLoop = false;
+    leftPivotRequestedVolts = 0;
+    rightPivotRequestedVolts = 0;
+    leftPivotAppliedVolts = 0;
+    rightPivotAppliedVolts = 0;
+    leftPivotController.reset();
+    rightPivotController.reset();
   }
 
   @Override
   public void stopGrabber() {
-	// Stop the grabber motors by setting their requested and applied voltages to zero
+    // Stop the grabber motors by setting their requested and applied voltages to zero
     leftGrabberRequestedVolts = 0;
     leftGrabberAppliedVolts = 0;
     rightGrabberRequestedVolts = 0;
     rightGrabberAppliedVolts = 0;
-
   }
 
   @Override
   public void stopArm() {
-	// Stop the entire arm by stopping both the pivot and grabber
-  stopGrabber();
-  stopPivot();
+    // Stop the entire arm by stopping both the pivot and grabber
+    stopGrabber();
+    stopPivot();
   }
 
-  private TrapezoidProfile.State advanceProfile(TrapezoidProfile.State currentSetpoint, double targetPositionRot) {
+  private TrapezoidProfile.State advanceProfile(
+      TrapezoidProfile.State currentSetpoint, double targetPositionRot) {
 
     return pivotProfile.calculate(
-        LOOP_PERIOD_SEC, currentSetpoint, 
-		new TrapezoidProfile.State(targetPositionRot, 0.0));
+        LOOP_PERIOD_SEC, currentSetpoint, new TrapezoidProfile.State(targetPositionRot, 0.0));
   }
 
   private double getLeftPivotPositionRotations() {
-	// Convert the left pivot's angular position from radians to rotations and apply inversion if necessary
-	return leftPivotSim.getAngularPositionRotations(); // Placeholder value, replace with actual calculation
-  
+    // Convert the left pivot's angular position from radians to rotations and apply inversion if
+    // necessary
+    return leftPivotSim
+        .getAngularPositionRotations(); // Placeholder value, replace with actual calculation
   }
 
   private double getRightPivotPositionRotations() {
-	// Convert the right pivot's angular position from radians to rotations and apply inversion if necessary
-	return rightPivotSim.getAngularPositionRotations(); // Placeholder value, replace with actual calculation
+    // Convert the right pivot's angular position from radians to rotations and apply inversion if
+    // necessary
+    return rightPivotSim
+        .getAngularPositionRotations(); // Placeholder value, replace with actual calculation
   }
 }
