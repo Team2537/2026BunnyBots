@@ -199,33 +199,42 @@ public class ArmIOReal implements ArmIO {
   public void setSpeed(double speed) {
 
     // create doubles for clampedSpeed (between -1 and 1) and voltage, assume 12V is max voltage
-
+      double clampedSpeed = MathUtil.clamp(speed, -1, 1);
+      double voltage = 12*clampedSpeed;
 
     // use control requests to set the voltage for both pivot motors, taking into account the inversion of the right pivot motor
-
+    leftPivotMotor.setControl(leftGrabberVoltageRequest.withOutput(voltage));
+    rightPivotMotor.setControl(
+        rightPivotVoltageRequest.withOutput(
+            ArmConstants.RIGHT_GRABBER_MOTOR_INVERTED ? -voltage : voltage));
   }
 
   public void stopPivot() {
     // stop the pivot motors by setting their control to neutral
- 
+      leftPivotMotor.setControl(new NeutralOut()/*?*/);
+      rightPivotMotor.setControl(new NeutralOut()/*?*/);
   }
 
   // grabber control
   @Override
   public void grabGamePiece() {
     // set the grabber motors to intake voltage
-    
+      setGrabberVoltage(ArmConstants.GRABBER_INTAKE_VOLTS);
+
   }
 
   @Override
   public void releaseGamePiece() {
     // set the grabber motors to release voltage
+      setGrabberVoltage(ArmConstants.GRABBER_RELEASE_VOLTS);
+
 
   }
 
   @Override
   public void holdGamePiece() {
     // set the grabber motors to hold voltage
+      setGrabberVoltage(ArmConstants.GRABBER_HOLD_VOLTS);
     
   }
 
@@ -239,13 +248,15 @@ public class ArmIOReal implements ArmIO {
 
   public void stopGrabber() {
     // stop the grabber motors by setting their control to neutral
-    
+      leftGrabberMotor.setControl(new NeutralOut()/*?*/);
+      rightGrabberMotor.setControl(new NeutralOut()/*?*/);
   }
 
   @Override
   public void stopArm() {
     // stop the entire arm by stopping both the pivot and grabber motors
-    
+    stopPivot();
+    stopGrabber();
   }
 
   private void configureLeftPivotMotor() {
@@ -286,6 +297,35 @@ public class ArmIOReal implements ArmIO {
     // inverted value based on the left grabber motor inverted constant, 
     // and current limits based on the grabber stator and supply current limit constants
     // apply configs using tryUntilOk with 5 retries and 0.25 timeout
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    config.MotorOutput.Inverted =
+        ArmConstants.RIGHT_PIVOT_MOTOR_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
+
+    config.Feedback.SensorToMechanismRatio = ArmConstants.PIVOT_GEAR_RATIO;
+
+    config.Slot0 =
+        new Slot0Configs()
+            .withKP(ArmConstants.PIVOT_KP)
+            .withKI(ArmConstants.PIVOT_KI)
+            .withKD(ArmConstants.PIVOT_KD);
+
+    config.MotionMagic =
+        new MotionMagicConfigs()
+            .withMotionMagicCruiseVelocity(ArmConstants.PIVOT_CRUISE_VELOCITY)
+            .withMotionMagicAcceleration(ArmConstants.PIVOT_ACCELERATION);
+
+    config.CurrentLimits.StatorCurrentLimit = ArmConstants.PIVOT_STATOR_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = ArmConstants.PIVOT_SUPPLY_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
+    tryUntilOk(5, () -> leftPivotMotor.getConfigurator().apply(config, 0.25));
     }
 
   private void configureLeftGrabberMotor() {
@@ -298,6 +338,22 @@ public class ArmIOReal implements ArmIO {
 
     TalonFXConfiguration config = new TalonFXConfiguration();
 
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    config.MotorOutput.Inverted =
+        ArmConstants.LEFT_GRABBER_MOTOR_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
+
+    config.Feedback.SensorToMechanismRatio = ArmConstants.GRABBER_GEAR_RATIO;
+
+    config.CurrentLimits.StatorCurrentLimit = ArmConstants.GRABBER_STATOR_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = ArmConstants.GRABBER_SUPPLY_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
+    tryUntilOk(5, () -> leftGrabberMotor.getConfigurator().apply(config, 0.25));
+
      }
 
   private void configureRightGrabberMotor() {
@@ -306,6 +362,25 @@ public class ArmIOReal implements ArmIO {
     // inverted value based on the left grabber motor inverted constant, 
     // and current limits based on the grabber stator and supply current limit constants
     // apply configs using tryUntilOk with 5 retries and 0.25 timeout
+
+
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    config.MotorOutput.Inverted =
+        ArmConstants.RIGHT_GRABBER_MOTOR_INVERTED
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
+
+    config.Feedback.SensorToMechanismRatio = ArmConstants.GRABBER_GEAR_RATIO;
+
+    config.CurrentLimits.StatorCurrentLimit = ArmConstants.GRABBER_STATOR_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = ArmConstants.GRABBER_SUPPLY_CURRENT_LIMIT_AMPS;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
+    tryUntilOk(5, () -> leftGrabberMotor.getConfigurator().apply(config, 0.25));
 
     }
 }
