@@ -9,10 +9,10 @@ public final class ArmConstants {
 
   public static final double ARM_MAX_VOLTS = 12.0;
 
-  public static final int LEFT_PIVOT_MOTOR_ID = 0;
-  public static final int RIGHT_PIVOT_MOTOR_ID = 1;
-  public static final int LEFT_GRABBER_MOTOR_ID = 2;
-  public static final int RIGHT_GRABBER_MOTOR_ID = 3;
+  public static final int LEFT_PIVOT_MOTOR_ID = 10;
+  public static final int RIGHT_PIVOT_MOTOR_ID = 11;
+  public static final int LEFT_GRABBER_MOTOR_ID = 12;
+  public static final int RIGHT_GRABBER_MOTOR_ID = 13;
 
   public static final boolean LEFT_PIVOT_MOTOR_INVERTED = false;
   public static final boolean RIGHT_PIVOT_MOTOR_INVERTED = true;
