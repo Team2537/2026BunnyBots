@@ -2,6 +2,7 @@ package frc.robot.subsystems.drive.arm;
 
 import static edu.wpi.first.units.Units.Rotations;
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
@@ -186,9 +187,7 @@ public class ArmIOReal implements ArmIO {
   public void setPosition(Angle position) {
     double targetRotations = position.in(Rotations);
 
-    leftPivotMotor.setControl(
-      leftPivotPositionRequest.withPosition(
-        targetRotations));
+    leftPivotMotor.setControl(leftPivotPositionRequest.withPosition(targetRotations));
 
     rightPivotMotor.setControl(
         rightPivotPositionRequest.withPosition(
@@ -200,21 +199,21 @@ public class ArmIOReal implements ArmIO {
 
     // create doubles for clampedSpeed (between -1 and 1) and voltage, assume 12V is max voltage
 
-
-    // use control requests to set the voltage for both pivot motors, taking into account the inversion of the right pivot motor
+    // use control requests to set the voltage for both pivot motors, taking into account the
+    // inversion of the right pivot motor
 
   }
 
   public void stopPivot() {
     // stop the pivot motors by setting their control to neutral
- 
+
   }
 
   // grabber control
   @Override
   public void grabGamePiece() {
     // set the grabber motors to intake voltage
-    
+
   }
 
   @Override
@@ -226,7 +225,7 @@ public class ArmIOReal implements ArmIO {
   @Override
   public void holdGamePiece() {
     // set the grabber motors to hold voltage
-    
+
   }
 
   private void setGrabberVoltage(double voltage) {
@@ -239,13 +238,13 @@ public class ArmIOReal implements ArmIO {
 
   public void stopGrabber() {
     // stop the grabber motors by setting their control to neutral
-    
+
   }
 
   @Override
   public void stopArm() {
     // stop the entire arm by stopping both the pivot and grabber motors
-    
+
   }
 
   private void configureLeftPivotMotor() {
@@ -282,30 +281,28 @@ public class ArmIOReal implements ArmIO {
 
   private void configureRightPivotMotor() {
     // Configure the right pivot motor settings here
-    // create talonfxconfiguration object and set the neutral mode to brake, 
-    // inverted value based on the left grabber motor inverted constant, 
+    // create talonfxconfiguration object and set the neutral mode to brake,
+    // inverted value based on the left grabber motor inverted constant,
     // and current limits based on the grabber stator and supply current limit constants
     // apply configs using tryUntilOk with 5 retries and 0.25 timeout
-    }
+  }
 
   private void configureLeftGrabberMotor() {
     // Configure the left grabber motor settings here
-    // create talonfxconfiguration object and set the neutral mode to brake, 
-    // inverted value based on the left grabber motor inverted constant, 
+    // create talonfxconfiguration object and set the neutral mode to brake,
+    // inverted value based on the left grabber motor inverted constant,
     // and current limits based on the grabber stator and supply current limit constants
     // apply configs using tryUntilOk with 5 retries and 0.25 timeout
-    
 
     TalonFXConfiguration config = new TalonFXConfiguration();
-
-     }
+  }
 
   private void configureRightGrabberMotor() {
     // Configure the right grabber motor settings here
-    // create talonfxconfiguration object and set the neutral mode to brake, 
-    // inverted value based on the left grabber motor inverted constant, 
+    // create talonfxconfiguration object and set the neutral mode to brake,
+    // inverted value based on the left grabber motor inverted constant,
     // and current limits based on the grabber stator and supply current limit constants
     // apply configs using tryUntilOk with 5 retries and 0.25 timeout
 
-    }
+  }
 }
