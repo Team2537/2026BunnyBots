@@ -10,9 +10,9 @@ public final class ArmConstants {
   public static final double ARM_MAX_VOLTS = 12.0;
 
   public static final int LEFT_PIVOT_MOTOR_ID = 0;
-  public static final int RIGHT_PIVOT_MOTOR_ID = 0;
-  public static final int LEFT_GRABBER_MOTOR_ID = 0;
-  public static final int RIGHT_GRABBER_MOTOR_ID = 0;
+  public static final int RIGHT_PIVOT_MOTOR_ID = 1;
+  public static final int LEFT_GRABBER_MOTOR_ID = 2;
+  public static final int RIGHT_GRABBER_MOTOR_ID = 3;
 
   public static final boolean LEFT_PIVOT_MOTOR_INVERTED = false;
   public static final boolean RIGHT_PIVOT_MOTOR_INVERTED = true;
@@ -21,7 +21,7 @@ public final class ArmConstants {
 
   public static final double STATUS_UPDATE_HZ = 50.0;
 
-  public static final double PIVOT_GEAR_RATIO = 1.0;
+  public static final double PIVOT_GEAR_RATIO = 32/64;
   public static final double PIVOT_MOMENT_OF_INERTIA = 0.025; // kg*m^2
 
   public static final double PIVOT_KP = 0.0;
@@ -41,7 +41,7 @@ public final class ArmConstants {
   public static final double GRABBER_STATOR_CURRENT_LIMIT_AMPS = 40.0;
   public static final double GRABBER_SUPPLY_CURRENT_LIMIT_AMPS = 30.0;
 
-  public static final double GRABBER_GEAR_RATIO = 1.0;
+  public static final double GRABBER_GEAR_RATIO = 12 / 20;
   public static final double GRABBER_MOMENT_OF_INERTIA = 0.01; // kg*m^2
 
   public static final Angle L1_ANGLE = Rotations.of(0.10);
