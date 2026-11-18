@@ -200,19 +200,18 @@ public class ArmIOReal implements ArmIO {
 
     // create doubles for clampedSpeed (between -1 and 1) and voltage, assume 12V is max voltage
       double clampedSpeed = MathUtil.clamp(speed, -1, 1);
-      double voltage = 12*clampedSpeed;
+      
 
     // use control requests to set the voltage for both pivot motors, taking into account the inversion of the right pivot motor
-    leftPivotMotor.setControl(leftGrabberVoltageRequest.withOutput(voltage));
-    rightPivotMotor.setControl(
-        rightPivotVoltageRequest.withOutput(
-            ArmConstants.RIGHT_GRABBER_MOTOR_INVERTED ? -voltage : voltage));
+
+    leftPivotMotor.set(clampedSpeed);
+    rightPivotMotor.set(clampedSpeed);
   }
 
   public void stopPivot() {
     // stop the pivot motors by setting their control to neutral
-      leftPivotMotor.setControl(new NeutralOut()/*?*/);
-      rightPivotMotor.setControl(new NeutralOut()/*?*/);
+      leftPivotMotor.set(0);
+      rightPivotMotor.set(0);
   }
 
   // grabber control
@@ -248,8 +247,8 @@ public class ArmIOReal implements ArmIO {
 
   public void stopGrabber() {
     // stop the grabber motors by setting their control to neutral
-      leftGrabberMotor.setControl(new NeutralOut()/*?*/);
-      rightGrabberMotor.setControl(new NeutralOut()/*?*/);
+      leftGrabberMotor.set(0);
+      rightGrabberMotor.set(0);
   }
 
   @Override
