@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drive.arm;
+package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Rotations;
 

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drive.arm;
+package frc.robot.subsystems.arm;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
