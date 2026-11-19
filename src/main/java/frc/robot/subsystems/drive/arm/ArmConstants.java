@@ -21,7 +21,7 @@ public final class ArmConstants {
 
   public static final double STATUS_UPDATE_HZ = 50.0;
 
-  public static final double PIVOT_GEAR_RATIO = 32/64;
+  public static final double PIVOT_GEAR_RATIO = 32 / 64;
   public static final double PIVOT_MOMENT_OF_INERTIA = 0.025; // kg*m^2
 
   public static final double PIVOT_KP = 0.0;
