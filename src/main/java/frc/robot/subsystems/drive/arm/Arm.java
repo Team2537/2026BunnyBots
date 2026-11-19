@@ -1,6 +1,5 @@
 package frc.robot.subsystems.drive.arm;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -33,12 +32,12 @@ public class Arm extends SubsystemBase {
 
   public void setSpeed(double speed) {
     // Clamp the speed between -1.0 and 1.0 and set it to the pivot motors
-    
+
   }
 
   public void stopPivot() {
     // stop the pivot motors
-    
+
   }
 
   public double getLeftPivotPosition() {
@@ -89,34 +88,34 @@ public class Arm extends SubsystemBase {
     io.stopArm();
   }
 
-  // Factory Commands 
+  // Factory Commands
   // Moves the pivot to a position and holds it there
-  public void setPositionCommand(Angle position) {
-    // returns a command that sets the arm position to the given position and waits until it reaches that position
-    
+  public Command setPositionCommand(Angle position) {
+    // returns a command that sets the arm position to the given position and waits until it reaches
+    // that position
+    return Commands.runEnd(() -> setPosition(position), () -> stop(), this);
   }
 
   // Moves the arm to the L1 scoring position
-  public void scoreL1Command() {
+  public Command scoreL1Command() {
     // returns a command that sets the arm position to L1_ANGLE, set name to "ArmScoreL1"
-    
+    return setPositionCommand(ArmConstants.L1_ANGLE);
   }
 
   // Moves the arm to the L2 scoring position
-  public void scoreL2Command() {
+  public Command scoreL2Command() {
     // returns a command that sets the arm position to L2_ANGLE
-    
+    return setPositionCommand(ArmConstants.L2_ANGLE);
   }
 
   // Moves the arm to the L3 scoring position
-  public void scoreL3Command() {
+  public Command scoreL3Command() {
     // returns a command that sets the arm position to L3_ANGLE
-    
+    return setPositionCommand(ArmConstants.L3_ANGLE);
   }
 
   // Moves the arm to the oven scoring position
-  public void scoreOvenCommand() {
-  }
+  public void scoreOvenCommand() {}
 
   // Manual pivot control using a joystick
   public Command manualPivotCommand(DoubleSupplier joystickInput) {
@@ -126,17 +125,20 @@ public class Arm extends SubsystemBase {
 
   // Runs the grabber while the command is active.
   public void grabGamePieceCommand() {
-    // return a command that runs the grabber while the command is active and stops the grabber when the command ends, set name to "ArmGrabGamePiece"
+    // return a command that runs the grabber while the command is active and stops the grabber when
+    // the command ends, set name to "ArmGrabGamePiece"
   }
 
   // Releases the game piece while the command is active.
   public void releaseGamePieceCommand() {
-    // return a command that releases the game piece while the command is active and stops the grabber when the command ends, set name to "ArmReleaseGamePiece"
+    // return a command that releases the game piece while the command is active and stops the
+    // grabber when the command ends, set name to "ArmReleaseGamePiece"
   }
 
   // Applies the grabber holding voltage.
   public void holdGamePieceCommand() {
-    // return a command that applies the grabber holding voltage while the command is active, set name to "ArmHoldGamePiece"
+    // return a command that applies the grabber holding voltage while the command is active, set
+    // name to "ArmHoldGamePiece"
   }
 
   // Stops the entire arm.
