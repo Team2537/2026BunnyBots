@@ -51,5 +51,5 @@ public interface ArmIO {
 
   public default void setPosition(Angle position) {}
 
-  public default void setSpeed(double speed) {}
+  public default void setPivotSpeed(double speed) {}
 }

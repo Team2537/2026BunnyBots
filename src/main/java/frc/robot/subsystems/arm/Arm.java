@@ -24,20 +24,16 @@ public class Arm extends SubsystemBase {
     Logger.processInputs("Arm", inputs);
   }
 
-  // Pivot Actions
-
   public void setPosition(Angle position) {
     io.setPosition(position);
   }
 
   public void setSpeed(double speed) {
-    // Clamp the speed between -1.0 and 1.0 and set it to the pivot motors
-
+    io.setPivotSpeed(Math.clamp(speed,-1.0,1.0));
   }
 
   public void stopPivot() {
-    // stop the pivot motors
-
+    io.stopPivot();
   }
 
   public double getLeftPivotPosition() {
@@ -64,8 +60,6 @@ public class Arm extends SubsystemBase {
     return leftAtPosition && rightAtPosition;
   }
 
-  // Grabber Actions
-
   public void grabGamePiece() {
     io.grabGamePiece();
   }
@@ -82,44 +76,32 @@ public class Arm extends SubsystemBase {
     io.stopGrabber();
   }
 
-  // General Actions
-
   public void stop() {
     io.stopArm();
   }
 
-  // Factory Commands
-  // Moves the pivot to a position and holds it there
   public Command setPositionCommand(Angle position) {
-    // returns a command that sets the arm position to the given position and waits until it reaches
-    // that position
     return Commands.runEnd(() -> setPosition(position), () -> stop(), this);
   }
 
-  // Moves the arm to the L1 scoring position
   public Command scoreL1Command() {
-    // returns a command that sets the arm position to L1_ANGLE, set name to "ArmScoreL1"
     return setPositionCommand(ArmConstants.L1_ANGLE);
   }
 
-  // Moves the arm to the L2 scoring position
   public Command scoreL2Command() {
-    // returns a command that sets the arm position to L2_ANGLE
     return setPositionCommand(ArmConstants.L2_ANGLE);
   }
 
-  // Moves the arm to the L3 scoring position
   public Command scoreL3Command() {
-    // returns a command that sets the arm position to L3_ANGLE
     return setPositionCommand(ArmConstants.L3_ANGLE);
   }
 
-  // Moves the arm to the oven scoring position
-  public void scoreOvenCommand() {}
+  public Command scoreOvenCommand() {
+    return setPositionCommand(ArmConstants.OVEN_ANGLE);
+  }
 
-  // Manual pivot control using a joystick
   public Command manualPivotCommand(DoubleSupplier joystickInput) {
-    return runEnd(() -> setSpeed(joystickInput.getAsDouble()), this::stopPivot)
+    return Commands.runEnd(() -> setSpeed(joystickInput.getAsDouble()), this::stopPivot)
         .withName("ArmManualPivot");
   }
 
@@ -139,10 +121,10 @@ public class Arm extends SubsystemBase {
   public void holdGamePieceCommand() {
     // return a command that applies the grabber holding voltage while the command is active, set
     // name to "ArmHoldGamePiece"
+
   }
 
-  // Stops the entire arm.
-  public void stopCommand() {
-    // return a command that stops the entire arm, set name to "ArmStop"
+  public Command stopCommand() {
+    return Commands.runOnce(() -> io.stopArm(),this).withName("ArmStop");
   }
 }
