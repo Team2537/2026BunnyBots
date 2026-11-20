@@ -1,5 +1,7 @@
 package frc.robot.subsystems.arm;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -13,6 +15,7 @@ public class Arm extends SubsystemBase {
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+  private final ArmMech2d mech2d = new ArmMech2d();
 
   public Arm(ArmIO io) {
     this.io = io;
@@ -22,6 +25,7 @@ public class Arm extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
+    mech2d.changeArmAngle(Rotations.of(inputs.leftPivotPosition));
   }
 
   // Pivot Actions
