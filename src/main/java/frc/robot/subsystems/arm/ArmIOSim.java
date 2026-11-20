@@ -258,12 +258,10 @@ public class ArmIOSim implements ArmIO {
   }
 
   private double getLeftPivotPositionRotations() {
-    return leftPivotSim
-        .getAngularPositionRotations();
+    return leftPivotSim.getAngularPositionRotations();
   }
 
   private double getRightPivotPositionRotations() {
-    return rightPivotSim
-        .getAngularPositionRotations();
+    return rightPivotSim.getAngularPositionRotations();
   }
 }

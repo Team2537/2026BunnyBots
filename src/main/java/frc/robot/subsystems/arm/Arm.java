@@ -29,7 +29,7 @@ public class Arm extends SubsystemBase {
   }
 
   public void setSpeed(double speed) {
-    io.setPivotSpeed(Math.clamp(speed,-1.0,1.0));
+    io.setPivotSpeed(MathUtil.clamp(speed, -1.0, 1.0));
   }
 
   public void stopPivot() {
@@ -125,6 +125,6 @@ public class Arm extends SubsystemBase {
   }
 
   public Command stopCommand() {
-    return Commands.runOnce(() -> io.stopArm(),this).withName("ArmStop");
+    return Commands.runOnce(() -> io.stopArm(), this).withName("ArmStop");
   }
 }
