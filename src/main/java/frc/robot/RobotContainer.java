@@ -169,12 +169,17 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
-    // move arm to highest level
+    
+    // arm controller bindings :TODO: optimize this
     controller.povUp().whileTrue(arm.scoreL3Command());
-
     controller.povLeft().whileTrue(arm.scoreL2Command());
-
     controller.povDown().whileTrue(arm.scoreL1Command());
+    controller.povRight().whileTrue(arm.scoreOvenCommand());
+
+    controller.leftTrigger().whileTrue(arm.holdGamePieceCommand());
+    controller.leftBumper().onTrue(arm.releaseGamePieceCommand());
+    controller.rightTrigger().whileTrue(arm.grabGamePieceCommand());
+    // have one button to hold, one button to release, hold should be default command
   }
 
   /**

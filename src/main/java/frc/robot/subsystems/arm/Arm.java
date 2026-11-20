@@ -99,23 +99,25 @@ public class Arm extends SubsystemBase {
   // Moves the arm to the L1 scoring position
   public Command scoreL1Command() {
     // returns a command that sets the arm position to L1_ANGLE, set name to "ArmScoreL1"
-    return setPositionCommand(ArmConstants.L1_ANGLE);
+    return setPositionCommand(ArmConstants.L1_ANGLE).withName("ArmScoreL1");
   }
 
   // Moves the arm to the L2 scoring position
   public Command scoreL2Command() {
     // returns a command that sets the arm position to L2_ANGLE
-    return setPositionCommand(ArmConstants.L2_ANGLE);
+    return setPositionCommand(ArmConstants.L2_ANGLE).withName("ArmScoreL2");
   }
 
   // Moves the arm to the L3 scoring position
   public Command scoreL3Command() {
     // returns a command that sets the arm position to L3_ANGLE
-    return setPositionCommand(ArmConstants.L3_ANGLE);
+    return setPositionCommand(ArmConstants.L3_ANGLE).withName("ArmScoreL3");
   }
 
   // Moves the arm to the oven scoring position
-  public void scoreOvenCommand() {}
+  public Command scoreOvenCommand() {
+    return setPositionCommand(ArmConstants.OVEN_ANGLE).withName("ArmScoreOven");
+  }
 
   // Manual pivot control using a joystick
   public Command manualPivotCommand(DoubleSupplier joystickInput) {
@@ -124,25 +126,30 @@ public class Arm extends SubsystemBase {
   }
 
   // Runs the grabber while the command is active.
-  public void grabGamePieceCommand() {
+  public Command grabGamePieceCommand() {
     // return a command that runs the grabber while the command is active and stops the grabber when
     // the command ends, set name to "ArmGrabGamePiece"
+    return runEnd(this::grabGamePiece, this::stopGrabber).withName("ArmGrabGamePiece");
+
   }
 
   // Releases the game piece while the command is active.
-  public void releaseGamePieceCommand() {
+  public Command releaseGamePieceCommand() {
     // return a command that releases the game piece while the command is active and stops the
     // grabber when the command ends, set name to "ArmReleaseGamePiece"
+    return runEnd(this::releaseGamePiece, this::stopGrabber).withName("ArmReleaseGamePiece");
   }
 
   // Applies the grabber holding voltage.
-  public void holdGamePieceCommand() {
+  public Command holdGamePieceCommand() {
     // return a command that applies the grabber holding voltage while the command is active, set
     // name to "ArmHoldGamePiece"
+    return runOnce(this::holdGamePiece).withName("ArmHoldGamePiece");
   }
 
   // Stops the entire arm.
-  public void stopCommand() {
+  public Command stopCommand() {
     // return a command that stops the entire arm, set name to "ArmStop"
+    return runOnce(this::stop).withName("ArmStop");
   }
 }
